@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th=http"://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
+    <title>NolRoom</title>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script th:src="@{'https://oapi.map.naver.com/openapi/v3/maps.js?ncpClientId='+${@environment.getProperty('clientId')}} + '&submodules=geocoder'"></script>
+    <link href="/css/naverMap.css" rel="stylesheet" />
+    <link rel="icon" href="/assets/sprites/favicon.ico">
+</head>
+
+<body>
+    <div id="root">
+        <header id="header" class="header">
+            <h1 class="logo_box"><a class="link_logo" href="#"><span class="blind">NolRoom</span></a></h1>
+            <nav class="sc-1d8u9oq htgAOx">
+                <ul class="list_navbar -fold">
+                    <li class="sc-13bg05j fSXbGk"><button type="button" class="btn_navbar active"><span class="navbar_text">지도 홈</span><span class="blind">선택됨</span></button></li>
+                    <li class="sc-13bg05j giVRJo"><button type="button" class="btn_navbar"><span class="navbar_text">최저가</span></button></li>
+                    <li class="sc-13bg05j jlEirM"><button type="button" class="btn_navbar"><span class="navbar_text">최고가</span></button></li>
+                    <li class="sc-13bg05j jrThCA"><button type="button" class="btn_navbar"><span class="navbar_text">지역별</span></button></li>
+                    <li class="sc-13bg05j hMCPzw"><button type="button" class="btn_navbar"><span class="navbar_text">날짜별</span></button></li>
+                    <li class="sc-13bg05j iHYZUs"><button type="button" class="btn_navbar"><span class="sc-cmjm8o kBmiGB"><span class="blind">new</span></span><span class="navbar_text">저장</span></button></li>
+                    <li class="sc-13bg05j cIPZjw"><button type="button" class="btn_navbar"><span class="navbar_text">더보기</span></button></li></ul></nav>
+        </header>
+        <div class="app-layout" id="map">
+            <div style="transform:translateX(0%)" class="transform_panel" id="transform_panel">
+                <div id="panel_inner">
+                    <div class="search_section">
+                        <form action="/search" method="post" name="search_wrap" class="search_wrap">
+                            <div class="search_box">
+                                <button type="button" class="button_search">검색</button>
+                                <div class="input_box">
+                                    <!-- <label for="input_search" class="label_search">장소, 도로 검색</label> -->
+                                    <input type="text" id="input_search" class="input_search" name="search" onclick="sample2_execDaumPostcode()" placeholder="장소, 도로 검색" autocomplete="off" maxlength="255" role="combobox" aria-controls="home-search-input" aria-expanded="false" required value="">
+                                    <input type="hidden" id="input_search_sidoCode"  name="sidoCode" value="">
+                                </div>
+                                <div id="layer" style="display:none;position:fixed;overflow:hidden;z-index:1;-webkit-overflow-scrolling:touch;">
+                                    <img src="//t1.daumcdn.net/postcode/resource/images/close.png" id="btnCloseLayer" style="cursor:pointer;position:absolute;right:-3px;top:-3px;z-index:1" onclick="closeDaumPostcode()" alt="닫기 버튼">
+                                </div>
+                            </div>
+                            <div class="search_date_box">
+                                <span class="date-icon"><svg viewBox="0 0 28 28"><path d="M22 12v8a2 2 0 01-2 2H8a2 2 0 01-2-2v-8h16zm-12 6a1 1 0 100 2 1 1 0 000-2zm4 0a1 1 0 100 2 1 1 0 000-2zm-4-4a1 1 0 100 2 1 1 0 000-2zm4 0a1 1 0 100 2 1 1 0 000-2zm4 0a1 1 0 100 2 1 1 0 000-2zM6 10a2 2 0 012-2h1v-.5a1.5 1.5 0 013 0V8h4v-.5a1.5 1.5 0 013 0V8h1a2 2 0 012 2v1H6v-1z"></path></svg></span>
+                                <div class="input_box">
+                                    <label for="input_search_date" class="blind">날짜 검색</label>
+                                    <input type="month" id="input_search_date" class="input_search" name="searchDate" autocomplete="off" aria-controls="home-search-input" aria-expanded="false" required value="">
+                                </div>
+                            </div>
+                            <div class="search_btn_area">
+                                <button type="reset" class="btn_direction refresh">다시입력</button>
+                                <button type="submit" id=submit class="btn_direction search">검색</button>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="panel_bottom">
+                        <div class="address-section">
+                            <div class="address_area">
+                                <button type="button" class="btn_address" id="contentAddress"></button>
+                            </div>
+                        </div>
+                        <div class="refresh-button-section">
+                            <button type="button" class="btn_address" id="refreshButton">최소/최대값</button>
+                        </div>
+                        <div class="panel-content-section" id="panel-content-section">
+                        </div>
+                    </div>
+                    <button id="panel_move" aria-expanded="true" class="panel_move" onclick="panelMoved()" onmouseover="panelChange()" onmouseout="panelChangeEnd()"><span class="blind">패널 접기</span></button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="//t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
+    <script src="/js/naverMap.js"></script>
+
+</body>
+
+</html>
