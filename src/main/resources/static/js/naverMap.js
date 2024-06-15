@@ -274,6 +274,7 @@ function initGeocoder() {
         console.log(response);
         search_content = response;
         const $panel = document.getElementById('panel-content-section');
+        const $refreshButton = document.getElementById('refreshButton');
         while ($panel.firstChild) {
           $panel.removeChild($panel.firstChild);
         }
@@ -282,15 +283,17 @@ function initGeocoder() {
           response.response.body.items.item.forEach((e, index) => {
             searchAddressToCoordinate(e['법정동'] + e['지번'], false);
             makePanelContent($panel, e, index);
-            document.getElementById('refreshButton').style.display = 'block';
           });
+          refreshButton.style.display = 'block';
         } else if (totalCount == 1) {
           makePanelContent($panel, response.response.body.items.item, 0);
+          refreshButton.style.display = 'none';
         } else {
           $panel.insertAdjacentHTML(
             'beforeend',
             '<div class="palce_section_content"><p align="center"><img src="/assets/sprites/noData.gif"></p></div>'
           );
+          refreshButton.style.display = 'none';
         }
       },
       error: function (request, status, error) {
@@ -304,72 +307,50 @@ function initGeocoder() {
       'beforeend',
       `<div class="place_section_content">
         <ul class="RzZV_">
-        <span>` +
-        (index + 1) +
-        `</span>
-      <div>
-                                                 <li class="_gCjX">
-                                                     <strong class="ipNiD">준공</strong>
-                                                     <div class="_TXmH">
-                                                         <div class="dEPd2">` +
-        e['건축년도'] +
-        '년' +
-        `</div>
-                                                     </div>
-                                                 </li>
-                                             </div>
-                                             <div>
-                                                 <li class="_gCjX">
-                                                     <strong class="ipNiD">면적</strong>
-                                                     <div class="_TXmH">
-                                                         <div class="dEPd2">` +
-        e['전용면적'] +
-        '㎡' +
-        `</div>
-                                                     </div>
-                                                 </li>
-                                             </div>
-                                             <div>
-                                                 <li class="_gCjX">
-                                                     <strong class="ipNiD">주소</strong>
-                                                     <div class="_TXmH">
-                                                         <div class="dEPd2">` +
-        e['법정동'] +
-        ' ' +
-        e['지번'] +
-        `</div>
-                                                     </div>
-                                                 </li>
-                                             </div>
-                                             <div>
-                                                 <li class="_gCjX">
-                                                     <strong class="ipNiD">주택</strong>
-                                                     <div class="_TXmH">
-                                                         <div class="dEPd2">` +
-        e['아파트'] +
-        ' ' +
-        e['층'] +
-        '층' +
-        `</div>
-                                                     </div>
-                                                 </li>
-                                             </div>
-                                             <div>
-                                                 <li class="_gCjX">
-                                                     <strong class="ipNiD">금액</strong>
-                                                     <div class="_TXmH">
-                                                         <div class="dEPd2">` +
-        e['거래금액'] +
-        '만원' +
-        `</div>
-                                                     </div>
-                                                 </li>
-                                             </div>
-                                         </ul>
-                                     </div>`
-    );
+            <span>` + (index+1) + `</span>
+            <div>
+                <li class="_gCjX">
+                    <strong class="ipNiD">준공</strong>
+                    <div class="_TXmH">
+                        <div class="dEPd2">`+e['건축년도']+'년'+`</div>
+                    </div>
+                </li>
+            </div>
+            <div>
+                <li class="_gCjX">
+                    <strong class="ipNiD">면적</strong>
+                    <div class="_TXmH">
+                        <div class="dEPd2">`+e['전용면적']+ '㎡' + `</div>
+                    </div>
+                </li>
+            </div>
+            <div>
+                <li class="_gCjX">
+                    <strong class="ipNiD">주소</strong>
+                    <div class="_TXmH">
+                        <div class="dEPd2">`+e['법정동'] + ' ' + e['지번'] +`</div>
+                    </div>
+                </li>
+            </div>
+            <div>
+                <li class="_gCjX">
+                    <strong class="ipNiD">주택</strong>
+                    <div class="_TXmH">
+                        <div class="dEPd2">`+ e['아파트'] + ' ' + e['층'] + '층'+`</div>
+                    </div>
+                </li>
+            </div>
+            <div>
+                <li class="_gCjX">
+                    <strong class="ipNiD">금액</strong>
+                    <div class="_TXmH">
+                        <div class="dEPd2">`+ e['거래금액'] + '만원' +`</div>
+                    </div>
+                </li>
+            </div>
+        </ul>
+    </div>`);
   }
-
   const button = document.getElementById('refreshButton');
   button.onclick = function () {
     window.alert(search_content.response.body.totalCount);
