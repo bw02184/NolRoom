@@ -139,7 +139,7 @@ var map = new naver.maps.Map('map', {
 var infoWindow = new naver.maps.InfoWindow({
   anchorSkew: true,
 });
-
+var position;
 var markers = [];
 function onSuccessGeolocation(position) {
   var location = new naver.maps.LatLng(
@@ -203,14 +203,10 @@ function searchAddressToCoordinate(address, flag) {
         return alert('Something Wrong!');
       }
 
-//      if (response.v2.meta.totalCount === 0) {
-//        return alert('totalCount' + response.v2.meta.totalCount);
-//      }
-
       var htmlAddresses = [];
       var item = response.v2.addresses[0];
       point = new naver.maps.Point(item.x, item.y);
-
+      position = point;
       if (item.roadAddress) {
         htmlAddresses.push('[도로명 주소] ' + item.roadAddress);
       }
@@ -237,6 +233,7 @@ function searchAddressToCoordinate(address, flag) {
 
       var marker = new naver.maps.Marker({
         position: point,
+        title: address,
         map: map,
       });
       markers.push(marker);
@@ -306,12 +303,17 @@ function initGeocoder() {
       'beforeend',
       `<div class="place_section_content">
         <ul class="RzZV_">
-            <span>` + (index+1) + `</span>
+            <span>` +
+        (index + 1) +
+        `</span>
             <div>
                 <li class="_gCjX">
                     <strong class="ipNiD">준공</strong>
                     <div class="_TXmH">
-                        <div class="dEPd2">`+e['건축년도']+'년'+`</div>
+                        <div class="dEPd2">` +
+        e['건축년도'] +
+        '년' +
+        `</div>
                     </div>
                 </li>
             </div>
@@ -319,7 +321,10 @@ function initGeocoder() {
                 <li class="_gCjX">
                     <strong class="ipNiD">면적</strong>
                     <div class="_TXmH">
-                        <div class="dEPd2">`+e['전용면적']+ '㎡' + `</div>
+                        <div class="dEPd2">` +
+        e['전용면적'] +
+        '㎡' +
+        `</div>
                     </div>
                 </li>
             </div>
@@ -327,7 +332,11 @@ function initGeocoder() {
                 <li class="_gCjX">
                     <strong class="ipNiD">주소</strong>
                     <div class="_TXmH">
-                        <div class="dEPd2">`+e['법정동'] + ' ' + e['지번'] +`</div>
+                        <div class="dEPd2">` +
+        e['법정동'] +
+        ' ' +
+        e['지번'] +
+        `</div>
                     </div>
                 </li>
             </div>
@@ -335,7 +344,12 @@ function initGeocoder() {
                 <li class="_gCjX">
                     <strong class="ipNiD">주택</strong>
                     <div class="_TXmH">
-                        <div class="dEPd2">`+ e['아파트'] + ' ' + e['층'] + '층'+`</div>
+                        <div class="dEPd2">` +
+        e['아파트'] +
+        ' ' +
+        e['층'] +
+        '층' +
+        `</div>
                     </div>
                 </li>
             </div>
@@ -343,34 +357,37 @@ function initGeocoder() {
                 <li class="_gCjX">
                     <strong class="ipNiD">금액</strong>
                     <div class="_TXmH">
-                        <div class="dEPd2">`+ numberToKorean(Number(e['거래금액'].replace(',',''))*10000) + '원' +`</div>
+                        <div class="dEPd2">` +
+        numberToKorean(Number(e['거래금액'].replace(',', '')) * 10000) +
+        '원' +
+        `</div>
                     </div>
                 </li>
             </div>
         </ul>
-    </div>`);
+    </div>`
+    );
   }
   const button = document.getElementById('refreshButton');
   button.onclick = function () {
     const item = search_content.response.body.items.item;
     const $panel = document.getElementById('panel-content-section');
 
-    if(button['data-min'] == 'true'){
-      item.sort(function(a, b) {
-        var nameA = Number(a['거래금액'].replace(',',''));
-        var nameB = Number(b['거래금액'].replace(',',''));
+    if (button['data-min'] == 'true') {
+      item.sort(function (a, b) {
+        var nameA = Number(a['거래금액'].replace(',', ''));
+        var nameB = Number(b['거래금액'].replace(',', ''));
         return nameA - nameB;
       });
-      button.innerText='최고가';
+      button.innerText = '최고가';
       button['data-min'] = 'false';
-    }
-    else{
-      item.sort(function(a, b) {
-        var nameA = Number(a['거래금액'].replace(',',''));
-        var nameB = Number(b['거래금액'].replace(',',''));
+    } else {
+      item.sort(function (a, b) {
+        var nameA = Number(a['거래금액'].replace(',', ''));
+        var nameB = Number(b['거래금액'].replace(',', ''));
         return nameB - nameA;
       });
-      button.innerText='최저가';
+      button.innerText = '최저가';
       button['data-min'] = 'true';
     }
     while ($panel.firstChild) {
@@ -379,36 +396,42 @@ function initGeocoder() {
     item.forEach((e, index) => {
       makePanelContent($panel, e, index);
     });
-
   };
 }
 naver.maps.onJSContentLoaded = initGeocoder;
 
-
 function numberFormat(x) {
-    return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
 }
 
-function numberToKorean(number){
-    var inputNumber  = number < 0 ? false : number;
-    var unitWords    = ['', '만', '억', '조', '경'];
-    var splitUnit    = 10000;
-    var splitCount   = unitWords.length;
-    var resultArray  = [];
-    var resultString = '';
+function numberToKorean(number) {
+  var inputNumber = number < 0 ? false : number;
+  var unitWords = ['', '만', '억', '조', '경'];
+  var splitUnit = 10000;
+  var splitCount = unitWords.length;
+  var resultArray = [];
+  var resultString = '';
 
-    for (var i = 0; i < splitCount; i++){
-        var unitResult = (inputNumber % Math.pow(splitUnit, i + 1)) / Math.pow(splitUnit, i);
-        unitResult = Math.floor(unitResult);
-        if (unitResult > 0){
-            resultArray[i] = unitResult;
-        }
+  for (var i = 0; i < splitCount; i++) {
+    var unitResult =
+      (inputNumber % Math.pow(splitUnit, i + 1)) / Math.pow(splitUnit, i);
+    unitResult = Math.floor(unitResult);
+    if (unitResult > 0) {
+      resultArray[i] = unitResult;
     }
+  }
 
-    for (var i = 0; i < resultArray.length; i++){
-        if(!resultArray[i]) continue;
-        resultString = String(numberFormat(resultArray[i])) + unitWords[i] + resultString;
-    }
+  for (var i = 0; i < resultArray.length; i++) {
+    if (!resultArray[i]) continue;
+    resultString =
+      String(numberFormat(resultArray[i])) + unitWords[i] + resultString;
+  }
 
-    return resultString;
+  return resultString;
 }
+
+const address_btn = document.getElementById('contentAddress');
+address_btn.addEventListener('click', function () {
+  map.setCenter(position);
+  map.setZoom(15);
+});
