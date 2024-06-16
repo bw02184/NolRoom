@@ -277,7 +277,14 @@ function initGeocoder() {
         const totalCount = response.response.body.totalCount;
         if (totalCount > 1) {
           response.response.body.items.item.forEach((e, index) => {
-            searchAddressToCoordinate(e['법정동'] + e['지번'], false);
+            searchAddressToCoordinate(
+              makeRoadAddressName(
+                e['도로명'],
+                e['도로명건물본번호코드'],
+                e['도로명건물부번호코드']
+              ),
+              false
+            );
             makePanelContent($panel, e, index);
           });
           refreshButton.style.display = 'block';
@@ -322,8 +329,10 @@ function initGeocoder() {
                     <strong class="ipNiD">면적</strong>
                     <div class="_TXmH">
                         <div class="dEPd2">` +
+        Math.round(e['전용면적'] / 3.305785) +
+        '평(' +
         e['전용면적'] +
-        '㎡' +
+        '㎡)' +
         `</div>
                     </div>
                 </li>
@@ -333,9 +342,11 @@ function initGeocoder() {
                     <strong class="ipNiD">주소</strong>
                     <div class="_TXmH">
                         <div class="dEPd2">` +
-        e['법정동'] +
-        ' ' +
-        e['지번'] +
+        makeRoadAddressName(
+          e['도로명'],
+          e['도로명건물본번호코드'],
+          e['도로명건물부번호코드']
+        ) +
         `</div>
                     </div>
                 </li>
@@ -435,3 +446,11 @@ address_btn.addEventListener('click', function () {
   map.setCenter(position);
   map.setZoom(15);
 });
+
+function makeRoadAddressName(roadName, road1, road2) {
+  let name = roadName + ' ' + road1.replace(/^0+/, '');
+  if (road2.replace(/^0+/, '').length != 0) {
+    name += '-' + road2.replace(/^0+/, '');
+  }
+  return name;
+}
