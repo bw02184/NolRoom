@@ -203,9 +203,9 @@ function searchAddressToCoordinate(address, flag) {
         return alert('Something Wrong!');
       }
 
-      if (response.v2.meta.totalCount === 0) {
-        return alert('totalCount' + response.v2.meta.totalCount);
-      }
+//      if (response.v2.meta.totalCount === 0) {
+//        return alert('totalCount' + response.v2.meta.totalCount);
+//      }
 
       var htmlAddresses = [];
       var item = response.v2.addresses[0];
@@ -270,7 +270,6 @@ function initGeocoder() {
       data: JSON.stringify(params),
       async: false,
       success: function (response) {
-        alert('성공');
         console.log(response);
         search_content = response;
         const $panel = document.getElementById('panel-content-section');
@@ -344,7 +343,7 @@ function initGeocoder() {
                 <li class="_gCjX">
                     <strong class="ipNiD">금액</strong>
                     <div class="_TXmH">
-                        <div class="dEPd2">`+ e['거래금액'] + '만원' +`</div>
+                        <div class="dEPd2">`+ numberToKorean(Number(e['거래금액'].replace(',',''))*10000) + '원' +`</div>
                     </div>
                 </li>
             </div>
@@ -353,7 +352,63 @@ function initGeocoder() {
   }
   const button = document.getElementById('refreshButton');
   button.onclick = function () {
-    window.alert(search_content.response.body.totalCount);
+    const item = search_content.response.body.items.item;
+    const $panel = document.getElementById('panel-content-section');
+
+    if(button['data-min'] == 'true'){
+      item.sort(function(a, b) {
+        var nameA = Number(a['거래금액'].replace(',',''));
+        var nameB = Number(b['거래금액'].replace(',',''));
+        return nameA - nameB;
+      });
+      button.innerText='최고가';
+      button['data-min'] = 'false';
+    }
+    else{
+      item.sort(function(a, b) {
+        var nameA = Number(a['거래금액'].replace(',',''));
+        var nameB = Number(b['거래금액'].replace(',',''));
+        return nameB - nameA;
+      });
+      button.innerText='최저가';
+      button['data-min'] = 'true';
+    }
+    while ($panel.firstChild) {
+      $panel.removeChild($panel.firstChild);
+    }
+    item.forEach((e, index) => {
+      makePanelContent($panel, e, index);
+    });
+
   };
 }
 naver.maps.onJSContentLoaded = initGeocoder;
+
+
+function numberFormat(x) {
+    return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+}
+
+function numberToKorean(number){
+    var inputNumber  = number < 0 ? false : number;
+    var unitWords    = ['', '만', '억', '조', '경'];
+    var splitUnit    = 10000;
+    var splitCount   = unitWords.length;
+    var resultArray  = [];
+    var resultString = '';
+
+    for (var i = 0; i < splitCount; i++){
+        var unitResult = (inputNumber % Math.pow(splitUnit, i + 1)) / Math.pow(splitUnit, i);
+        unitResult = Math.floor(unitResult);
+        if (unitResult > 0){
+            resultArray[i] = unitResult;
+        }
+    }
+
+    for (var i = 0; i < resultArray.length; i++){
+        if(!resultArray[i]) continue;
+        resultString = String(numberFormat(resultArray[i])) + unitWords[i] + resultString;
+    }
+
+    return resultString;
+}

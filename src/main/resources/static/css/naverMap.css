@@ -122,16 +122,16 @@ textarea {
 }
 .link_logo::before {
   background-image: url(/assets/sprites/icon.png);
-      background-size: 30px 32px;
-      overflow: hidden;
-      display: inline-block;
-      font-size: 1px;
-      line-height: 1px;
-      color: transparent;
-      vertical-align: top;
-      content: '';
-      width: 30px;
-      height: 30px;
+  background-size: 30px 32px;
+  overflow: hidden;
+  display: inline-block;
+  font-size: 1px;
+  line-height: 1px;
+  color: transparent;
+  vertical-align: top;
+  content: '';
+  width: 30px;
+  height: 30px;
 }
 .blind {
   overflow: hidden !important;
@@ -222,8 +222,7 @@ li {
   height: 100%;
   min-width: 390px;
   background-color: rgb(255, 255, 255);
-  box-shadow:
-    rgba(0, 0, 0, 0.2) 0px 0px 5px 0px,
+  box-shadow: rgba(0, 0, 0, 0.2) 0px 0px 5px 0px,
     rgba(0, 0, 0, 0.1) 5px 0px 15px 0px;
 }
 #panel_inner {
@@ -326,13 +325,25 @@ li {
   vertical-align: middle;
   content: '';
 }
-.search_btn_area .btn_direction.refresh::before,
-#refreshButton::before {
+.search_btn_area .btn_direction.refresh::before {
   background-image: url(/assets/sprites/directions@2x.png?a2177d9);
   background-size: 215px 207px;
   background-position: -205px -168px;
   width: 9px;
   height: 9px;
+  overflow: hidden;
+  display: inline-block;
+  font-size: 1px;
+  line-height: 1px;
+  color: transparent;
+  mask-image: none;
+}
+#refreshButton::before {
+  background-image: url(/assets/sprites/directions@2x.png?a2177d9);
+  background-size: 150px 150px;
+  background-position: 406px -78px;
+  width: 20px;
+  height: 20px;
   overflow: hidden;
   display: inline-block;
   font-size: 1px;
@@ -350,6 +361,12 @@ li {
   color: rgb(51, 51, 51);
   letter-spacing: -0.4px;
   cursor: pointer;
+}
+#refreshButton {
+  display: none;
+  margin-left: 20px;
+  color: rgb(4, 117, 244);
+  font-weight: 500;
 }
 .search_btn_area .btn_direction.search {
   margin-left: auto;
@@ -472,8 +489,4 @@ li {
 ._TXmH {
   overflow: hidden;
   color: rgba(var(--gray30), 1);
-}
-#refreshButton {
-  width: 100px;
-  display: none;
 }
