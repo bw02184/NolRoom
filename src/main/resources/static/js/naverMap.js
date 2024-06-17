@@ -136,11 +136,11 @@ var map = new naver.maps.Map('map', {
   mapTypeId: naver.maps.MapTypeId.NORMAL,
 });
 
-var infoWindow = new naver.maps.InfoWindow({
+var infowindow = new naver.maps.InfoWindow({
   anchorSkew: true,
 });
 var position;
-var markers = [];
+var totalContent = new Array();
 function onSuccessGeolocation(position) {
   var location = new naver.maps.LatLng(
     position.coords.latitude,
@@ -153,7 +153,6 @@ function onSuccessGeolocation(position) {
   //infowindow.setContent('<div style="padding:20px;">' + 'geolocation.getCurrentPosition() 위치' + '</div>');
 
   //infowindow.open(map, location);
-  console.log('Coordinates: ' + location.toString());
 }
 
 function onErrorGeolocation() {
@@ -174,11 +173,6 @@ function onErrorGeolocation() {
 
 $(window).on('load', function () {
   if (navigator.geolocation) {
-    /**
-     * navigator.geolocation 은 Chrome 50 버젼 이후로 HTTP 환경에서 사용이 Deprecate 되어 HTTPS 환경에서만 사용 가능 합니다.
-     * http://localhost 에서는 사용이 가능하며, 테스트 목적으로, Chrome 의 바로가기를 만들어서 아래와 같이 설정하면 접속은 가능합니다.
-     * chrome.exe --unsafely-treat-insecure-origin-as-secure="http://example.com"
-     */
     navigator.geolocation.getCurrentPosition(
       onSuccessGeolocation,
       onErrorGeolocation
@@ -192,8 +186,106 @@ $(window).on('load', function () {
   }
 });
 
+var overlays = [];
+var bg_size = [
+  '-90px -140px;',
+  '-90px -360px;',
+  '-90px -560px;',
+  '-90px -765px;',
+  '-270px -765px;',
+  '-270px -555px;',
+  '-90px -345px;',
+  '-270px -140px;',
+];
+var CustomOverlay = function (options) {
+  this._element = $(
+    '<div style="position:absolute;left:0;top:0;width:130px;background-color:white;text-align:center;border:2px solid #6C483B;border-radius:5px;">' +
+      '<button onclick="panelFocus();" style="display:block; background-image: url(/assets/sprites/apt.png); cursor: pointer; width:130px; height:130px; background-size: 1024px 1024px;background-position:' +
+      bg_size[Math.floor(Math.random() * (bg_size.length - 1))] +
+      '"> </button> ' +
+      '<hr>' +
+      '<span style="display:block;font-weight: bold;">' +
+      options.address +
+      ' </span>' +
+      '<span id="overlay_roadAddress">' +
+      options.roadAddress +
+      ' </span>' +
+      '</div>'
+  );
+
+  this.setPosition(options.position);
+  this.setMap(options.map || null);
+};
+
+function panelFocus() {
+  let section = document.getElementsByClassName('place_section_content');
+  for (let i = 0; i < section.length; i++) {
+    var section1 = section.item(i);
+    section1.style.border = '1px solid rgba(0, 0, 0, 0.15)';
+    section1.style.backgroundColor = 'white';
+  }
+  const roadAddress = document.getElementById('overlay_roadAddress').innerText;
+  const result = search_content.response.body.items.item
+    .map((e, i) =>
+      makeRoadAddressName(
+        e['도로명'],
+        e['도로명건물본번호코드'],
+        e['도로명건물부번호코드']
+      ) === roadAddress
+        ? i + 1
+        : undefined
+    )
+    .filter((x) => x);
+  for (let i = 0; i < result.length; i++) {
+    const panelContentBox = document.getElementById(
+      'place_section_content' + result[i]
+    );
+    var offset = $('#place_section_content' + result[i]).offset();
+    panelContentBox.style.border = '2px black solid';
+    panelContentBox.style.backgroundColor = 'rgb(243, 247, 248)';
+    $('.panel-content-section').animate({ scrollTop: offset.top }, 400);
+  }
+}
+CustomOverlay.prototype = new naver.maps.OverlayView();
+CustomOverlay.prototype.constructor = CustomOverlay;
+
+CustomOverlay.prototype.setPosition = function (position) {
+  this._position = position;
+  this.draw();
+};
+
+CustomOverlay.prototype.getPosition = function () {
+  return this._position;
+};
+
+CustomOverlay.prototype.onAdd = function () {
+  var overlayLayer = this.getPanes().overlayLayer;
+
+  this._element.appendTo(overlayLayer);
+};
+
+CustomOverlay.prototype.draw = function () {
+  if (!this.getMap()) {
+    return;
+  }
+
+  var projection = this.getProjection(),
+    position = this.getPosition(),
+    pixelPosition = projection.fromCoordToOffset(position);
+
+  this._element.css('left', pixelPosition.x);
+  this._element.css('top', pixelPosition.y);
+};
+
+CustomOverlay.prototype.onRemove = function () {
+  var overlayLayer = this.getPanes().overlayLayer;
+
+  this._element.remove();
+  this._element.off();
+};
+
 map.setCursor('pointer');
-function searchAddressToCoordinate(address, flag) {
+function searchAddressToCoordinate(address, flag, extra = '') {
   naver.maps.Service.geocode(
     {
       query: address,
@@ -206,7 +298,6 @@ function searchAddressToCoordinate(address, flag) {
       var htmlAddresses = [];
       var item = response.v2.addresses[0];
       point = new naver.maps.Point(item.x, item.y);
-      position = point;
       if (item.roadAddress) {
         htmlAddresses.push('[도로명 주소] ' + item.roadAddress);
       }
@@ -219,29 +310,40 @@ function searchAddressToCoordinate(address, flag) {
         htmlAddresses.push('[영문명 주소] ' + item.englishAddress);
       }
 
-      //infoWindow.setContent([
-      //   '<div style="padding:10px;min-width:200px;line-height:150%;">',
-      //   '<h4 style="margin-top:5px;">검색 주소 : '+ address +'</h4><br />',
-      //   htmlAddresses.join('<br />'),
-      //   '</div>'
-      //].join('\n'));
       if (flag) {
-        markers.forEach((e) => {
-          e.setMap(null);
+        totalContent.forEach((e) => {
+          e.marker.setMap(null);
+        });
+        totalContent.splice(0);
+        map.setCenter(point);
+        position = point;
+      } else {
+        var marker = new naver.maps.Marker({
+          position: point,
+          title: extra['아파트'],
+          map: map,
+        });
+        totalContent.push({ marker, point, extra });
+
+        naver.maps.Event.addListener(marker, 'click', function (e) {
+          overlays.forEach((e) => {
+            e.setMap(null);
+          });
+          overlays.length = 0;
+          var overlay = new CustomOverlay({
+            address: marker.title,
+            roadAddress: makeRoadAddressName(
+              extra['도로명'],
+              extra['도로명건물본번호코드'],
+              extra['도로명건물부번호코드']
+            ),
+            map: map,
+            position: marker.position,
+          });
+          overlay.setMap(map);
+          overlays.push(overlay);
         });
       }
-
-      var marker = new naver.maps.Marker({
-        position: point,
-        title: address,
-        map: map,
-      });
-      markers.push(marker);
-
-      if (flag) {
-        map.setCenter(point);
-      }
-      //infoWindow.open(map, point);
     }
   );
 }
@@ -259,56 +361,69 @@ function initGeocoder() {
     };
     document.getElementById('contentAddress').innerText = params.roadAddress;
 
-    $.ajax({
-      type: 'post',
-      url: '/juso',
-      contentType: 'application/json; charset=utf-8',
-      dataType: 'json',
-      data: JSON.stringify(params),
-      async: false,
-      success: function (response) {
-        console.log(response);
-        search_content = response;
-        const $panel = document.getElementById('panel-content-section');
-        const $refreshButton = document.getElementById('refreshButton');
-        while ($panel.firstChild) {
-          $panel.removeChild($panel.firstChild);
-        }
-        const totalCount = response.response.body.totalCount;
-        if (totalCount > 1) {
-          response.response.body.items.item.forEach((e, index) => {
-            searchAddressToCoordinate(
-              makeRoadAddressName(
-                e['도로명'],
-                e['도로명건물본번호코드'],
-                e['도로명건물부번호코드']
-              ),
-              false
-            );
-            makePanelContent($panel, e, index);
-          });
-          refreshButton.style.display = 'block';
-        } else if (totalCount == 1) {
-          makePanelContent($panel, response.response.body.items.item, 0);
-          refreshButton.style.display = 'none';
-        } else {
-          $panel.insertAdjacentHTML(
-            'beforeend',
-            '<div class="palce_section_content"><p align="center"><img src="/assets/sprites/noData.gif"></p></div>'
+    function asyncAjax() {
+      return new Promise((resolve, reject) => {
+        $.ajax({
+          type: 'post',
+          url: '/juso',
+          contentType: 'application/json; charset=utf-8',
+          dataType: 'json',
+          data: JSON.stringify(params),
+        }).done(function (response) {
+          resolve(response);
+        });
+      });
+    }
+
+    asyncAjax().then((response) => {
+      console.log(response);
+      search_content = response;
+      const $panel = document.getElementById('panel-content-section');
+      const $refreshButton = document.getElementById('refreshButton');
+      while ($panel.firstChild) {
+        $panel.removeChild($panel.firstChild);
+      }
+      const totalCount = response.response.body.totalCount;
+      if (totalCount > 1) {
+        response.response.body.items.item.forEach((e, index) => {
+          searchAddressToCoordinate(
+            makeRoadAddressName(
+              e['도로명'],
+              e['도로명건물본번호코드'],
+              e['도로명건물부번호코드']
+            ),
+            false,
+            e
           );
-          refreshButton.style.display = 'none';
-        }
-      },
-      error: function (request, status, error) {
-        console.log(error);
-      },
-    }); // end ajax
+          makePanelContent($panel, e, index);
+        });
+        $refreshButton.style.display = 'block';
+        totalContent.forEach(function (el, index) {
+          naver.maps.Event.addListener(
+            el.marker,
+            'click',
+            getClickHandler(index)
+          ); // 클릭한 마커 핸들러
+        });
+      } else if (totalCount == 1) {
+        makePanelContent($panel, response.response.body.items.item, 0);
+        $refreshButton.style.display = 'none';
+      } else {
+        $panel.insertAdjacentHTML(
+          'beforeend',
+          '<div class="palce_section_content"><p align="center"><img src="/assets/sprites/noData.gif"></p></div>'
+        );
+        $refreshButton.style.display = 'none';
+      }
+    });
   });
 
   function makePanelContent(panel, e, index) {
     panel.insertAdjacentHTML(
       'beforeend',
-      `<div class="place_section_content">
+      `<div class="place_section_content" id="place_section_content` +
+        (index + 1) +
+        `">
         <ul class="RzZV_">
             <span>` +
         (index + 1) +
