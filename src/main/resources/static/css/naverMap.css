@@ -42,7 +42,6 @@ body {
   word-break: break-all;
   word-wrap: break-word;
   -webkit-text-size-adjust: none;
-  overflow-y: visible;
 }
 button {
   border: none;
@@ -66,7 +65,7 @@ button {
   position: relative;
   z-index: 300;
   flex-direction: column;
-  height: 100vh;
+  height: 100%;
   background-color: rgb(255, 255, 255);
 }
 #header::after {
@@ -151,7 +150,7 @@ nav {
 .list_navbar {
   overflow: hidden;
   max-width: 390px;
-  height: 100vh;
+  height: 100%;
 }
 li,
 ol,
@@ -220,7 +219,7 @@ li {
   top: 0px;
   bottom: 0px;
   z-index: 200;
-  height: 100vh;
+  height: 100%;
   min-width: 390px;
   background-color: rgb(255, 255, 255);
   box-shadow: rgba(0, 0, 0, 0.2) 0px 0px 5px 0px,
@@ -230,7 +229,7 @@ li {
   position: relative;
   display: flex;
   flex: 1 1 auto;
-  height: 100vh;
+  height: 100%;
 }
 .search_section {
   position: absolute;
@@ -397,7 +396,7 @@ li {
   z-index: 0;
   display: flex;
   flex-direction: column;
-  height: 100vh;
+  height: 100%;
   background: rgb(255, 255, 255);
   padding-top: 130px;
   box-sizing: border-box;
@@ -430,7 +429,7 @@ li {
   position: relative;
   overflow: scroll;
   width: 390px;
-  height: 100vh;
+  height: 100%;
   flex: 1 1 auto;
   flex-direction: column;
 }
