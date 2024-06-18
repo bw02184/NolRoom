@@ -149,10 +149,6 @@ function onSuccessGeolocation(position) {
 
   map.setCenter(location); // 얻은 좌표를 지도의 중심으로 설정합니다.
   map.setZoom(15); // 지도의 줌 레벨을 변경합니다.
-
-  //infowindow.setContent('<div style="padding:20px;">' + 'geolocation.getCurrentPosition() 위치' + '</div>');
-
-  //infowindow.open(map, location);
 }
 
 function onErrorGeolocation() {
@@ -225,17 +221,22 @@ function panelFocus() {
     section1.style.backgroundColor = 'white';
   }
   const roadAddress = document.getElementById('overlay_roadAddress').innerText;
-  const result = search_content.response.body.items.item
-    .map((e, i) =>
-      makeRoadAddressName(
-        e['도로명'],
-        e['도로명건물본번호코드'],
-        e['도로명건물부번호코드']
-      ) === roadAddress
-        ? i + 1
-        : undefined
-    )
-    .filter((x) => x);
+  let result;
+  if (totalContent.length > 1) {
+    result = totalContent
+      .map((e, i) =>
+        makeRoadAddressName(
+          e['extra']['도로명'],
+          e['extra']['도로명건물본번호코드'],
+          e['extra']['도로명건물부번호코드']
+        ) === roadAddress
+          ? i + 1
+          : undefined
+      )
+      .filter((x) => x);
+  } else {
+    result = [1];
+  }
   for (let i = 0; i < result.length; i++) {
     const panelContentBox = document.getElementById(
       'place_section_content' + result[i]
@@ -291,7 +292,7 @@ CustomOverlay.prototype.onRemove = function () {
 };
 
 map.setCursor('pointer');
-function searchAddressToCoordinate(address, flag, extra = '') {
+function searchAddressToCoordinate(address, flag, extra = '', index = 0) {
   naver.maps.Service.geocode(
     {
       query: address,
@@ -300,22 +301,8 @@ function searchAddressToCoordinate(address, flag, extra = '') {
       if (status === naver.maps.Service.Status.ERROR) {
         return alert('Something Wrong!');
       }
-
-      var htmlAddresses = [];
       var item = response.v2.addresses[0];
       point = new naver.maps.Point(item.x, item.y);
-      if (item.roadAddress) {
-        htmlAddresses.push('[도로명 주소] ' + item.roadAddress);
-      }
-
-      if (item.jibunAddress) {
-        htmlAddresses.push('[지번 주소] ' + item.jibunAddress);
-      }
-
-      if (item.englishAddress) {
-        htmlAddresses.push('[영문명 주소] ' + item.englishAddress);
-      }
-
       if (flag) {
         totalContent.forEach((e) => {
           e.marker.setMap(null);
@@ -329,32 +316,50 @@ function searchAddressToCoordinate(address, flag, extra = '') {
           title: extra['아파트'],
           map: map,
         });
-        totalContent.push({ marker, point, extra });
+        totalContent.push({ marker, point, extra, index });
+        totalContent.sort(function (a, b) {
+          var nameA = Number(a['index']);
+          var nameB = Number(b['index']);
+          return nameA - nameB;
+        });
 
-        naver.maps.Event.addListener(marker, 'click', function (e) {
-          overlays.forEach((e) => {
-            e.setMap(null);
-          });
-          overlays.length = 0;
-          var overlay = new CustomOverlay({
-            address: marker.title,
-            roadAddress: makeRoadAddressName(
-              extra['도로명'],
-              extra['도로명건물본번호코드'],
-              extra['도로명건물부번호코드']
-            ),
-            map: map,
-            position: marker.position,
-          });
-          overlay.setMap(map);
-          overlays.push(overlay);
+        naver.maps.Event.addListener(
+          marker,
+          'click',
+          setOverlay(extra, marker)
+        );
+        const panel_content = document.getElementById(
+          'place_section_content' + (index + 1)
+        );
+        panel_content.addEventListener('click', function () {
+          map.setCenter(marker.position);
+          map.setZoom(20);
+          setOverlay(extra, marker)();
         });
       }
     }
   );
 }
-
-var search_content;
+function setOverlay(extra, marker) {
+  return function () {
+    overlays.forEach((e) => {
+      e.setMap(null);
+    });
+    overlays.length = 0;
+    var overlay = new CustomOverlay({
+      address: marker.title,
+      roadAddress: makeRoadAddressName(
+        extra['도로명'],
+        extra['도로명건물본번호코드'],
+        extra['도로명건물부번호코드']
+      ),
+      map: map,
+      position: marker.position,
+    });
+    overlay.setMap(map);
+    overlays.push(overlay);
+  };
+}
 function initGeocoder() {
   $('#submit').on('click', function (e) {
     e.preventDefault();
@@ -383,7 +388,6 @@ function initGeocoder() {
 
     asyncAjax().then((response) => {
       console.log(response);
-      search_content = response;
       const $panel = document.getElementById('panel-content-section');
       const $refreshButton = document.getElementById('refreshButton');
       while ($panel.firstChild) {
@@ -399,19 +403,24 @@ function initGeocoder() {
               e['도로명건물부번호코드']
             ),
             false,
-            e
+            e,
+            index
           );
           makePanelContent($panel, e, index);
         });
         $refreshButton.style.display = 'block';
-        totalContent.forEach(function (el, index) {
-          naver.maps.Event.addListener(
-            el.marker,
-            'click',
-            getClickHandler(index)
-          ); // 클릭한 마커 핸들러
-        });
       } else if (totalCount == 1) {
+        const e = response.response.body.items.item;
+        searchAddressToCoordinate(
+          makeRoadAddressName(
+            e['도로명'],
+            e['도로명건물본번호코드'],
+            e['도로명건물부번호코드']
+          ),
+          false,
+          e,
+          0
+        );
         makePanelContent($panel, response.response.body.items.item, 0);
         $refreshButton.style.display = 'none';
       } else {
@@ -502,21 +511,20 @@ function initGeocoder() {
   }
   const button = document.getElementById('refreshButton');
   button.onclick = function () {
-    const item = search_content.response.body.items.item;
     const $panel = document.getElementById('panel-content-section');
 
     if (button['data-min'] == 'true') {
-      item.sort(function (a, b) {
-        var nameA = Number(a['거래금액'].replace(',', ''));
-        var nameB = Number(b['거래금액'].replace(',', ''));
+      totalContent.sort(function (a, b) {
+        var nameA = Number(a['extra']['거래금액'].replace(',', ''));
+        var nameB = Number(b['extra']['거래금액'].replace(',', ''));
         return nameA - nameB;
       });
       button.innerText = '최고가';
       button['data-min'] = 'false';
     } else {
-      item.sort(function (a, b) {
-        var nameA = Number(a['거래금액'].replace(',', ''));
-        var nameB = Number(b['거래금액'].replace(',', ''));
+      totalContent.sort(function (a, b) {
+        var nameA = Number(a['extra']['거래금액'].replace(',', ''));
+        var nameB = Number(b['extra']['거래금액'].replace(',', ''));
         return nameB - nameA;
       });
       button.innerText = '최저가';
@@ -525,8 +533,16 @@ function initGeocoder() {
     while ($panel.firstChild) {
       $panel.removeChild($panel.firstChild);
     }
-    item.forEach((e, index) => {
-      makePanelContent($panel, e, index);
+    totalContent.forEach((e, index) => {
+      makePanelContent($panel, e['extra'], index);
+      const panel_content = document.getElementById(
+        'place_section_content' + (index + 1)
+      );
+      panel_content.addEventListener('click', function () {
+        map.setCenter(totalContent[index].marker.position);
+        map.setZoom(20);
+        setOverlay(totalContent[index].extra, totalContent[index].marker)();
+      });
     });
   };
 }
@@ -575,3 +591,10 @@ function makeRoadAddressName(roadName, road1, road2) {
   }
   return name;
 }
+naver.maps.Event.addListener(map, 'click', function () {
+  console.log('hi');
+  overlays.forEach((e) => {
+    e.setMap(null);
+  });
+  overlays.length = 0;
+});
