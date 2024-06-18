@@ -240,10 +240,16 @@ function panelFocus() {
     const panelContentBox = document.getElementById(
       'place_section_content' + result[i]
     );
-    var offset = $('#place_section_content' + result[i]).offset();
+    const offset = panelContentBox.getBoundingClientRect();
+    const scrolledTopLength = document.getElementById(
+      'panel-content-section'
+    ).scrollTop;
     panelContentBox.style.border = '2px black solid';
     panelContentBox.style.backgroundColor = 'rgb(243, 247, 248)';
-    $('.panel-content-section').animate({ scrollTop: offset.top }, 400);
+    $('.panel-content-section').animate(
+      { scrollTop: offset.top + scrolledTopLength - 300 },
+      400
+    );
   }
 }
 CustomOverlay.prototype = new naver.maps.OverlayView();
