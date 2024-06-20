@@ -308,6 +308,10 @@ function searchAddressToCoordinate(address, flag, extra = '', index = 0) {
           e.marker.setMap(null);
         });
         totalContent.splice(0);
+        overlays.forEach((e) => {
+          e.setMap(null);
+        });
+        overlays.length = 0;
         map.setCenter(point);
         position = point;
       } else {
