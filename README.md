@@ -17,7 +17,7 @@
 
 <H1>기능</H1>
 - 메인화면
-![image](https://github.com/bw02184/NolRoom/assets/102367393/3fc27c9e-ab0c-4456-b2c9-33edc89a0ac8)
+  ![image](https://github.com/bw02184/NolRoom/assets/102367393/31aedc61-0d75-4dcd-8072-379c360e0b56)
 
 - 다음 주소 api
 <img width="1440" alt="image" src="https://github.com/bw02184/NolRoom/assets/102367393/2a9232d9-3b36-45fa-905c-cc6153660bf7">
