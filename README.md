@@ -17,7 +17,7 @@
 
 <H1>기능</H1>
 - 메인화면
-  ![image](https://github.com/bw02184/NolRoom/assets/102367393/31aedc61-0d75-4dcd-8072-379c360e0b56)
+<img width="1440" alt="image" src="https://github.com/bw02184/NolRoom/assets/102367393/62e41c0a-a401-4aef-8f83-f8c2dd01c015">
 
 - 다음 주소 api
 <img width="1440" alt="image" src="https://github.com/bw02184/NolRoom/assets/102367393/2a9232d9-3b36-45fa-905c-cc6153660bf7">
@@ -32,13 +32,14 @@
 <img width="1439" alt="image" src="https://github.com/bw02184/NolRoom/assets/102367393/7322e55a-5485-4317-a962-4f623116e4d2">
 
 - 마커 정보창(사용자 오버레이) 클릭
-  <img width="1439" alt="image" src="https://github.com/bw02184/NolRoom/assets/102367393/e09417e9-407d-48ac-9684-3b021b056ecd">
+<img width="1439" alt="image" src="https://github.com/bw02184/NolRoom/assets/102367393/e09417e9-407d-48ac-9684-3b021b056ecd">
 
 - 패널 정보창 클릭
-  <img width="1437" alt="image" src="https://github.com/bw02184/NolRoom/assets/102367393/68e4d91c-230b-4121-a349-40a0c14cb376">
+<img width="1437" alt="image" src="https://github.com/bw02184/NolRoom/assets/102367393/68e4d91c-230b-4121-a349-40a0c14cb376">
 
 - 사용자 데이터가 없을 시
-  <img width="1439" alt="image" src="https://github.com/bw02184/NolRoom/assets/102367393/d2b91ad5-4ced-47c1-9984-0a1d3646a960">
+<img width="1439" alt="image" src="https://github.com/bw02184/NolRoom/assets/102367393/d2b91ad5-4ced-47c1-9984-0a1d3646a960">
+
 ### 코드 컨벤션
 
 - esLint & prettier 사용
